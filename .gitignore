@@ -1,0 +1,20 @@
+# Ambiente virtuale
+venv/
+env/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# File temporanei
+*.log
+*.tmp
+*.swp
+
+# File macOS
+.DS_Store
+
+# Configurazioni locali
+*.env
+
