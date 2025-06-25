@@ -1,11 +1,26 @@
 import flet as ft
 from utils.ClassiProdotti import Prodotto, TabellaProdotti,FormInserimentoProdotto, BoxFiltro
 from utils.MagazzinoPostgresDB import MagazzinoDB
+from pages.utilsPagine import pagina_prodotti_quasi_zero, pagina_prodotti_a_zero
 
 def pagina_magazzino(page: ft.Page):
    
    def on_close(e):
         page.window.close()
+      
+   def apri_pagina_prodotti_a_zero(e):
+         print ("sto aprendo pagina dei prodotti a zero")
+         page.go("/magazzino/proZero")
+         print (page.route)
+         if page.route == "/magazzino/proZero":
+            pagina_prodotti_a_zero(page,magazzino_db)
+            
+   def apri_pagina_prodotti_quasi_zero(e):
+         print ("sto aprendo pagina dei prodotti prossimi allo zero")
+         page.go("/magazzino/proQuasiZero")
+         print (page.route)
+         if page.route == "/magazzino/proQuasiZero":
+            pagina_prodotti_quasi_zero(page,magazzino_db,15)
 
    db_config = {
         'host': 'localhost',
@@ -40,24 +55,6 @@ def pagina_magazzino(page: ft.Page):
     on_elimina_prodotto_gui=tabella.elimina_prodotto,
     on_elimina_filtro=filtro.elimina_prodotto
    )
-  
-   """
-   page.views.append(
-                ft.View(
-                    "/magazzino",
-                    [
-                        ft.Text("Benvenuto nel Magazzino",
-                            size= 50,
-                            color = "Blue",
-                            text_align = ft.TextAlign.CENTER),
-                        filtro.get_widget(),
-                        tabella.get_widget(),
-                        ft.ElevatedButton("Torna alla Home ", on_click=lambda e: page.go("/")),
-                        ft.ElevatedButton("Aggiungi Prodotto", on_click=lambda e: form.mostra_form(page)),
-                        ft.ElevatedButton("Azzera database", on_click=lambda e: magazzino_db.svuota_tabella())
-                    ]
-                     )
-                )"""
 
    page.views.append(
     ft.View(
@@ -83,6 +80,14 @@ def pagina_magazzino(page: ft.Page):
                                 ft.ElevatedButton("Aggiungi Prodotto", on_click=lambda e: form.mostra_form(page)),
                                 ft.ElevatedButton("Aggiungi Ordine Serioplast", on_click=lambda e: page.go("/ordSerio")),
                                 ft.ElevatedButton("Aggiungi Ordine Lumachina", on_click=lambda e: page.go("/ordLuma")),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=20,
+                            ),
+                         ft.Row(
+                            controls=[
+                                ft.ElevatedButton("Prodotti quasi finiti",on_click= apri_pagina_prodotti_quasi_zero),
+                                ft.ElevatedButton("Prodotti non in Magazzino", on_click= apri_pagina_prodotti_a_zero),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                             spacing=20,

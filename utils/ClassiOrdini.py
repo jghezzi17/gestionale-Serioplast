@@ -36,76 +36,6 @@ class Ordine:
             f"Ordine {self.codice_ordine} - "
             f"{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n{prodotti_str}"
         )
-"""
-class TabellaOrdini:
-    def __init__(self, ordini: list, on_elimina=None, on_visualizza_dettagli=None,on_elimina_filtro=None):
-        self.ordini = ordini
-        self.on_elimina = on_elimina
-        self.on_visualizza_dettagli = on_visualizza_dettagli
-        self.on_elimina_filtro = on_elimina_filtro #callback per aggiornare il 
-        self.tabella = self._costruisci_tabella()
-
-    def _costruisci_tabella(self):
-        return ft.DataTable(
-            columns=[
-                ft.DataColumn(label=ft.Text("Codice Ordine")),
-                ft.DataColumn(label=ft.Text("Data e Ora")),
-                ft.DataColumn(label=ft.Text("Azioni")),
-            ],
-            rows=[
-                self._crea_riga(index, ordine)
-                for index, ordine in enumerate(self.ordini)
-            ],
-            data_row_min_height=50,
-            heading_row_height=60,
-        )
-
-    def _crea_riga(self, index, ordine):
-        btn_visualizza = ft.ElevatedButton(
-            text="Visualizza Prodotti",
-            on_click=lambda e: self.on_visualizza_dettagli(ordine) if self.on_visualizza_dettagli else None,
-        )
-
-        btn_elimina = ft.IconButton(
-            icon=ft.Icons.DELETE,
-            icon_color="red",
-            tooltip="Elimina ordine",
-            on_click=lambda e: self._elimina_ordine(ordine)
-        )
-
-        return ft.DataRow(cells=[
-            ft.DataCell(ft.Text(ordine.codice_ordine)),
-            ft.DataCell(ft.Text(ordine.timestamp.strftime("%Y-%m-%d %H:%M"))),
-            ft.DataCell(ft.Row([btn_visualizza, btn_elimina])),
-        ])
-
-    def _elimina_ordine(self, ordine):
-        self.ordini.remove(ordine)
-        if self.on_elimina:
-            self.on_elimina(ordine)
-        if self.on_elimina_filtro:
-                self.on_elimina_filtro(ordine)
-        self.aggiorna()
-
-    def aggiorna(self):
-        self.tabella.rows = [
-            self._crea_riga(index, ordine)
-            for index, ordine in enumerate(self.ordini)
-        ]
-        self.tabella.update()
-
-    def aggiungi_ordine(self, ordine):
-        self.ordini.append(ordine)
-        self.tabella.rows.append(self._crea_riga(len(self.ordini) - 1, ordine))
-        self.tabella.update()
-
-    def get_widget(self):
-        return ft.Container(
-            content=self.tabella,
-            padding=20,
-            alignment=ft.alignment.center,
-            expand=True
-        )"""
 
 class TabellaOrdini:
     def __init__(
@@ -173,6 +103,7 @@ class TabellaOrdini:
 
         btn_visualizza = ft.ElevatedButton(
             text="Visualizza Prodotti",
+            disabled=is_applicato,
             on_click=lambda e: self.on_visualizza_dettagli(ordine) if self.on_visualizza_dettagli else None,
         )
 
@@ -202,6 +133,7 @@ class TabellaOrdini:
     def _applica_o_annulla(self, ordine):
         if ordine.applicato:
             # Annulla
+            
             for p in ordine.prodotti:
                 if self.tipo_operazione == "scarica":
                     self.magazzino_db.aggiungi_o_incrementa(p)

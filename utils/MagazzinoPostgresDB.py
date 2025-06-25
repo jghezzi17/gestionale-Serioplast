@@ -52,17 +52,7 @@ class MagazzinoDB:
                 row = cursor.fetchone()
                 return row is not None and row[0] >= prodotto.quantita
 
-    """def aggiungi_prodotto(self, prodotto: Prodotto):
-        query = '''
-            INSERT INTO magazzino (nome, quantita, taglia)
-            VALUES (%s, %s, %s)
-            RETURNING id
-        '''
-        with self._connect() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (prodotto.nome, prodotto.quantita, prodotto.taglia))
-                prodotto.id = cursor.fetchone()[0]
-            conn.commit()"""
+   
 
     def aggiungi_o_incrementa(self, prodotto: Prodotto):
         with self._connect() as conn:
@@ -88,29 +78,7 @@ class MagazzinoDB:
                     ''', (prodotto.nome, prodotto.quantita, prodotto.taglia))
             conn.commit()
 
-    """def scarica_prodotto(self, prodotto: Prodotto) -> bool:
-        with self._connect() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute('''
-                    SELECT id, quantita FROM magazzino
-                    WHERE nome = %s AND taglia = %s
-                ''', (prodotto.nome, prodotto.taglia))
-                esistente = cursor.fetchone()
-
-                if esistente:
-                    id_esistente, quantita_attuale = esistente
-
-                    if quantita_attuale < prodotto.quantita:
-                        return False
-
-                    nuova_quantita = quantita_attuale - prodotto.quantita
-                    cursor.execute('''
-                        UPDATE magazzino SET quantita = %s WHERE id = %s
-                    ''', (nuova_quantita, id_esistente))
-                    conn.commit()
-                    return True
-                else:
-                    return False"""
+    
     def scarica_prodotto(self, prodotto: Prodotto) -> bool:
         with self._connect() as conn:
             with conn.cursor() as cursor:
