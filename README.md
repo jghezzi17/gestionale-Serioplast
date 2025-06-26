@@ -131,8 +131,3 @@ DB_PORT = 5432
 
 Assicurati che l’utente e la password abbiano i permessi per connettersi da remoto.
 
-```
-
-Fammi sapere se vuoi che te lo inserisca in un file o modifichi altro!
-```
-
