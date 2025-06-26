@@ -8,6 +8,24 @@ def pagina_dettaglio_ordine(page: ft.Page, ordine: Ordine, ordini_DB : OrdiniDB)
 
     def on_close(e):
         page.window.close()
+
+    def aggiungi_prodotto_con_id(prodotto: Prodotto):
+       print("sto aggiungendo un prodotto")
+       prodotto.id = ordini_DB.aggiungi_prodotto_ordine(ordine.id,prodotto)
+       print("il prodotto aggiunto è")
+       print(prodotto.nome)
+       print(prodotto.taglia)
+       print(f"il prodotto id è: {prodotto.id}")
+       # Verifica se prodotto già esiste nella tabella
+       for p in tabella.prodotti:
+           if p.nome == prodotto.nome and p.taglia == prodotto.taglia:
+               p.quantita += prodotto.quantita
+               tabella.aggiorna()
+               return
+
+       # Se è nuovo
+       tabella.prodotti.append(prodotto)
+       tabella.aggiorna()
         
     #devo mostrare l'ordine
     prodotti = ordini_DB.get_prodotti_per_ordine(ordine.id)
@@ -23,15 +41,11 @@ def pagina_dettaglio_ordine(page: ft.Page, ordine: Ordine, ordini_DB : OrdiniDB)
     )
     
     filtro = BoxFiltro(tabella)
-    tabella.on_elimina_filtro = filtro.elimina_prodotto
 
     aggiungi_prodotto = partial(ordini_DB.aggiungi_prodotto_ordine, ordine.id)
    
-    form = FormInserimentoProdotto(
-      tabella.aggiungi_prodotto,
-      aggiungi_prodotto,
-      filtro.aggiorna_tabella
-      )
+    form = FormInserimentoProdotto(aggiungi_prodotto_con_id)
+      
     print(f"L'ordine ID è{ordine.id}")
     print("FILTRO WIDGET:", filtro.get_widget())
     print("TABELLA WIDGET:", tabella.get_widget())
@@ -63,11 +77,11 @@ def pagina_dettaglio_ordine(page: ft.Page, ordine: Ordine, ordini_DB : OrdiniDB)
                                     alignment=ft.MainAxisAlignment.CENTER,
                                     spacing=20,
                                 ),
+                                filtro.get_widget(),
                                 ft.Container(
                                     content=tabella.get_widget(),
                                     expand=True,     # 💡 tabella si espande
                                 ),
-                                filtro.get_widget(),
                                 ft.Row(
                                 controls=[
                                     ft.ElevatedButton("Esci", on_click=on_close)
@@ -107,11 +121,6 @@ def pagina_dettaglio_ordine(page: ft.Page, ordine: Ordine, ordini_DB : OrdiniDB)
                                     ],
                                     alignment=ft.MainAxisAlignment.CENTER  # centra il contenuto orizzontalmente
                                 ),
-                                filtro.get_widget(),
-                                ft.Container(
-                                    content=tabella.get_widget(),
-                                    expand=True,     # 💡 tabella si espande
-                                ),
                                 ft.Row(
                                     controls=[
                                         ft.ElevatedButton("Indietro",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: page.go("/ordLuma")),
@@ -119,6 +128,11 @@ def pagina_dettaglio_ordine(page: ft.Page, ordine: Ordine, ordini_DB : OrdiniDB)
                                                                         ],
                                     alignment=ft.MainAxisAlignment.CENTER,
                                     spacing=20,
+                                ),
+                                filtro.get_widget(),
+                                ft.Container(
+                                    content=tabella.get_widget(),
+                                    expand=True,     # 💡 tabella si espande
                                 ),
                                 ft.Row(
                                 controls=[

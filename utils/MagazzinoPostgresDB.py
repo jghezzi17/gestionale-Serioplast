@@ -17,15 +17,13 @@ class MagazzinoDB:
         self.db_config = db_config
         self._create_table()
         self.on_elimina_prodotto_gui = None
-        self.on_elimina_filtro = None
+        
 
     def _connect(self):
         return psycopg2.connect(**self.db_config)
 
-    def set_callbacks(self, on_elimina_prodotto_gui=None, on_elimina_filtro=None):
+    def set_callbacks(self, on_elimina_prodotto_gui=None):
         self.on_elimina_prodotto_gui = on_elimina_prodotto_gui
-        self.on_elimina_filtro = on_elimina_filtro
-
 
     def _create_table(self):
         query = '''
@@ -54,7 +52,7 @@ class MagazzinoDB:
 
    
 
-    def aggiungi_o_incrementa(self, prodotto: Prodotto):
+    def aggiungi_o_incrementa(self, prodotto: Prodotto) -> int:
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute('''
@@ -71,12 +69,18 @@ class MagazzinoDB:
                         SET quantita = %s
                         WHERE id = %s
                     ''', (nuova_quantita, id_esistente))
+                    conn.commit()
+                    return id_esistente
                 else:
                     cursor.execute('''
                         INSERT INTO magazzino (nome, quantita, taglia)
                         VALUES (%s, %s, %s)
+                        RETURNING id
                     ''', (prodotto.nome, prodotto.quantita, prodotto.taglia))
-            conn.commit()
+                    nuovo_id = cursor.fetchone()[0]
+                    conn.commit()
+                    return nuovo_id
+
 
     
     def scarica_prodotto(self, prodotto: Prodotto) -> bool:
@@ -112,8 +116,6 @@ class MagazzinoDB:
                     # ✅ Dopo commit: trigger GUI update se necessario
                     if self.on_elimina_prodotto_gui:
                         self.on_elimina_prodotto_gui(prodotto)
-                    if self.on_elimina_filtro:
-                        self.on_elimina_filtro(prodotto)
 
                     return True
                 else:
@@ -139,6 +141,11 @@ class MagazzinoDB:
         '''
         with self._connect() as conn:
             with conn.cursor() as cursor:
+                print("DEBUG aggiorna_prodotto:")
+                print("nome:", prodotto.nome, type(prodotto.nome))
+                print("quantita:", prodotto.quantita, type(prodotto.quantita))
+                print("taglia:", prodotto.taglia, type(prodotto.taglia))
+                print("id:", prodotto.id, type(prodotto.id))
                 cursor.execute(query, (prodotto.nome, prodotto.quantita, prodotto.taglia, prodotto.id))
             conn.commit()
 

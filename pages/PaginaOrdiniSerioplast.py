@@ -79,19 +79,19 @@ def pagina_ordiniSerioplast(page: ft.Page):
                                         ),
                                         ft.Row(
                                              controls = [
-                                                  ft.ElevatedButton("Torna alla Home", on_click=lambda e: page.go("/")),
-                                                  ft.ElevatedButton("Magazzino", on_click=lambda e: page.go("/magazzino")),
-                                                  ft.ElevatedButton("Aggiungi Ordine", on_click=lambda e: form.mostra_form(page)),
+                                                  ft.ElevatedButton("Torna alla Home",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: page.go("/")),
+                                                  ft.ElevatedButton("Magazzino",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: page.go("/magazzino")),
+                                                  ft.ElevatedButton("Aggiungi Ordine",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: form.mostra_form(page)),
                                                   
                                              ],
                                              alignment = ft.MainAxisAlignment.CENTER,
                                              spacing = 20,
                                         ),
+                                        filtro.get_widget(),
                                         ft.Container(
                                            content=tabella_ordini_serio.get_widget(),
                                            expand=True,     # 💡 tabella si espande
                                         ),
-                                        filtro.get_widget(),
                                         ft.Row(
                                            controls=[
                                                ft.ElevatedButton("Esci",bgcolor=ft.Colors.RED_400, color=ft.Colors.WHITE, on_click=on_close)

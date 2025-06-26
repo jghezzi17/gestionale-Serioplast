@@ -15,6 +15,12 @@ class OrdiniDB:
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS note_ordini (
+                        ordine_id INTEGER PRIMARY KEY REFERENCES ordini(id) ON DELETE CASCADE,
+                        note TEXT
+                    )
+                ''')
+                cursor.execute('''
                     CREATE TABLE IF NOT EXISTS ordini (
                         id SERIAL PRIMARY KEY,
                         codice_ordine TEXT UNIQUE,
@@ -32,6 +38,24 @@ class OrdiniDB:
                     )
                 ''')
             conn.commit()
+    def get_note_ordine(self, ordine_id: int) -> str:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT note FROM note_ordini WHERE ordine_id = %s', (ordine_id,))
+                row = cursor.fetchone()
+                return row[0] if row else ""
+            
+    def salva_note_ordine(self, ordine_id: int, note: str):
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute('''
+                    INSERT INTO note_ordini (ordine_id, note)
+                    VALUES (%s, %s)
+                    ON CONFLICT (ordine_id)
+                    DO UPDATE SET note = EXCLUDED.note
+                ''', (ordine_id, note))
+            conn.commit()
+
 
     def aggiungi_ordine(self, ordine: Ordine):
         with self._connect() as conn:
@@ -53,7 +77,10 @@ class OrdiniDB:
     def get_tutti_ordini(self):
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute('SELECT id, codice_ordine, timestamp, applicato FROM ordini')
+                cursor.execute('''
+                    SELECT id, codice_ordine, timestamp, applicato FROM ordini
+                    ORDER BY timestamp DESC
+                ''')
                 ordini_raw = cursor.fetchall()
 
                 ordini = []
@@ -144,16 +171,23 @@ class OrdiniDB:
                 ''', (prodotto.nome, prodotto.quantita, prodotto.taglia, prodotto.id, ordine_id))
             conn.commit()
 
-    def aggiungi_prodotto_ordine(self, ordine_id: int, prodotto: Prodotto):
+    def aggiungi_prodotto_ordine(self, ordine_id: int, prodotto: Prodotto) -> int:
         if not ordine_id:
             raise ValueError("Ordine ID mancante per l'aggiunta del prodotto")
+        
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute('''
                     INSERT INTO prodotti_ordine (ordine_id, nome, quantita, taglia)
                     VALUES (%s, %s, %s, %s)
+                    RETURNING id
                 ''', (ordine_id, prodotto.nome, prodotto.quantita, prodotto.taglia))
+                
+                prodotto_id = cursor.fetchone()[0]  # recupera l'ID generato
+
             conn.commit()
+            return prodotto_id  # ✅ ritorna l'id
+
 
     def elimina_prodotto_ordine(self, ordine_id: int, prodotto: Prodotto):
         if not hasattr(prodotto, "id") or prodotto.id is None:

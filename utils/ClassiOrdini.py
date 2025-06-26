@@ -36,6 +36,46 @@ class Ordine:
             f"Ordine {self.codice_ordine} - "
             f"{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n{prodotti_str}"
         )
+class FormNoteOrdine:
+    def __init__(self, ordine, magazzino_db, page):
+        self.ordine = ordine
+        self.magazzino_db = magazzino_db
+        self.page = page
+        self.dialog = None
+
+    def mostra_form(self):
+        note_iniziali = self.magazzino_db.get_note_ordine(self.ordine.id)
+
+        campo_note = ft.TextField(
+            label="Note",
+            multiline=True,
+            value=note_iniziali or "",
+            width=400,
+            height=200,
+        )
+
+        def salva_note(e):
+            self.magazzino_db.salva_note_ordine(self.ordine.id, campo_note.value)
+            self.dialog.open = False
+            self.page.update()
+
+        self.dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Note per Ordine"),
+            content=campo_note,
+            actions=[
+                ft.TextButton("Annulla", on_click=lambda e: self._chiudi()),
+                ft.ElevatedButton("Salva", on_click=salva_note),
+            ]
+        )
+
+        self.page.overlay.append(self.dialog)
+        self.dialog.open = True
+        self.page.update()
+
+    def _chiudi(self):
+        self.dialog.open = False
+        self.page.update()
 
 class TabellaOrdini:
     def __init__(
@@ -121,14 +161,24 @@ class TabellaOrdini:
             on_click=lambda e: self._applica_o_annulla(ordine)
         )
 
+        btn_note = ft.ElevatedButton(
+            text="Note",
+            on_click=lambda e: self._apri_finestra_note(e, ordine),
+        )
+
+
         return ft.DataRow(
             cells=[
                 ft.DataCell(ft.Text(ordine.codice_ordine)),
                 ft.DataCell(ft.Text(ordine.timestamp.strftime("%Y-%m-%d %H:%M"))),
-                ft.DataCell(ft.Row([btn_visualizza, btn_elimina, btn_applica])),
+                ft.DataCell(ft.Row([btn_visualizza, btn_elimina, btn_applica,btn_note])),
             ],
             color=ft.Colors.GREEN_100 if is_applicato else None  # sfondo verde se applicato
         )
+
+    def _apri_finestra_note(self, e, ordine):
+        form = FormNoteOrdine(ordine, self.ordini_db, e.page)
+        form.mostra_form()
 
     def _applica_o_annulla(self, ordine):
         if ordine.applicato:
@@ -314,3 +364,5 @@ class BoxFiltroOrdini:
 
     def get_widget(self):
         return self.container
+
+

@@ -120,7 +120,6 @@ class TabellaProdotti:
         self.prodotti = prodotti
         self.on_modifica = on_modifica  # callback per aggiornare il db
         self.on_elimina_db = on_elimina_db #callback per eliminare un prodotto dal db
-        self.on_elimina_filtro = on_elimina_filtro #callback per aggiornare il 
         self.tabella = self._costruisci_tabella()
 
     def elimina_prodotto(self, prodotto: Prodotto):
@@ -153,8 +152,6 @@ class TabellaProdotti:
             self.prodotti.remove(prodotto)
             if self.on_elimina_db:
                 self.on_elimina_db(prodotto)
-            if self.on_elimina_filtro:
-                self.on_elimina_filtro(prodotto)   
             self.aggiorna()            # Ricostruisce le righe
             self.tabella.update()
 
@@ -232,28 +229,60 @@ class TabellaProdotti:
             alignment=ft.alignment.center,
             expand=True
         )
+    
     def _on_prodotto_modificato(self, prodotto_modificato: Prodotto):
-        # qui aggiorni la tabella e DB
-        # se usi on_modifica come callback per DB, chiamala:
+        # Cerca se esiste già un altro prodotto con lo stesso nome e taglia
+        for i, p in enumerate(self.prodotti):
+            if p.id != prodotto_modificato.id and p.nome == prodotto_modificato.nome and p.taglia == prodotto_modificato.taglia:
+                # Trovato un duplicato → somma quantità
+                print("Unisco i prodotti con la stessa combinazione nome-taglia")
+
+                # Somma le quantità
+                p.quantita += prodotto_modificato.quantita
+
+                # Elimina il vecchio prodotto dalla lista e tabella
+                index_vecchio = next((i for i, pr in enumerate(self.prodotti) if pr.id == prodotto_modificato.id), None)
+                if index_vecchio is not None:
+                    del self.prodotti[index_vecchio]
+                    del self.tabella.rows[index_vecchio]
+
+                # Aggiorna il TextField della riga del prodotto esistente
+                riga = self.tabella.rows[i]
+                tf_quantita = riga.cells[1].content.content
+                tf_quantita.value = str(p.quantita)
+                tf_quantita.update()
+
+                # Aggiorna nel database
+                self.on_elimina_db(prodotto_modificato)  # elimina il vecchio record
+                self.on_modifica(p)  # aggiorna la quantità del prodotto esistente
+
+                self.aggiorna()
+                self.tabella.update()
+                return
+
+        # Altrimenti, modifica normale
         if self.on_modifica:
             self.on_modifica(prodotto_modificato)
 
-        # aggiorna la tabella GUI (ricostruisce le righe)
         self.aggiorna()
         self.tabella.update()
 
-    def aggiorna(self):
-        """Ricostruisce tutte le righe nel caso i dati siano stati aggiornati fuori."""
+
+    def aggiorna(self,prodotti_filtrati=None):
+        """Ricostruisce tutte le righe nel caso i dati siano stati aggiornati fuori o filtrati."""
+        lista = prodotti_filtrati if prodotti_filtrati is not None else self.prodotti
         self.tabella.rows = [
             self._crea_riga(index, prodotto)
-            for index, prodotto in enumerate(self.prodotti)
+            for index, prodotto in enumerate(lista)
         ]
+        print("Tabella aggiornata con", len(lista), "prodotti")
+        self.tabella.update()
+         
+         
 
 class FormInserimentoProdotto:
-    def __init__(self, on_prodotto_creato_gui,on_prodotto_creato_db,on_prodotto_creato_filtro):
-        self.on_prodotto_creato_gui = on_prodotto_creato_gui
-        self.on_prodotto_creato_db = on_prodotto_creato_db
-        self.on_prodotto_creato_filtro = on_prodotto_creato_filtro
+    def __init__(self, on_prodotto_creato):
+        self.on_prodotto_creato = on_prodotto_creato
         self.dialog = None
 
     def mostra_form(self, page):
@@ -289,15 +318,9 @@ class FormInserimentoProdotto:
                 p.aggiorna_nome(tipo_prodotto.value)
                 p.aggiorna_quantita(int(quantita.value))
                 p.aggiorna_taglia(taglia.value)
-
-                if self.on_prodotto_creato_db:#salva su db
-                    self.on_prodotto_creato_db(p)
-                    
-                if self.on_prodotto_creato_gui:#crea la riga su gui
-                    self.on_prodotto_creato_gui(p)
-
-                if self.on_prodotto_creato_filtro:#aggiorna tabella filtro
-                    self.on_prodotto_creato_filtro(p)
+                """queste tre callback sono gestite in paginaMgazzino da un'unica callback"""
+                if self.on_prodotto_creato:#salva su db
+                    self.on_prodotto_creato(p)
 
                 self.dialog.open = False
                 page.update()
@@ -341,10 +364,7 @@ class FormInserimentoProdotto:
 class BoxFiltro:
     def __init__(self, tabella_prodotti: TabellaProdotti):
         self.tabella_prodotti = tabella_prodotti
-        self.prodotti_originali = list(tabella_prodotti.prodotti)  # copia originale
-        self.container = None
 
-        # Controlli di filtro
         self.filtro_nome = ft.Dropdown(
             label="Tipo Prodotto",
             options=[ft.dropdown.Option(p) for p in ["Tutti"] + PRODOTTI_VALIDI],
@@ -358,19 +378,12 @@ class BoxFiltro:
             width=150
         )
 
-        self.bottone_filtra = ft.ElevatedButton("Applica",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=self._applica_filtro)
+        self.bottone_filtra = ft.ElevatedButton("Applica", bgcolor=ft.Colors.BLUE_900, color=ft.Colors.WHITE, on_click=self._applica_filtro)
         self.bottone_reset = ft.TextButton("Reset", on_click=self._reset_filtro)
-        self.titolo = ft.Text("Filtro",size = 30, color=ft.Colors.BLUE_900)
-        
+        self.titolo = ft.Text("Filtro", size=30, color=ft.Colors.BLUE_900)
 
         self.container = ft.Row(
-            controls=[
-                self.titolo,
-                self.filtro_nome,
-                self.filtro_taglia,
-                self.bottone_filtra,
-                self.bottone_reset
-            ],
+            controls=[self.titolo, self.filtro_nome, self.filtro_taglia, self.bottone_filtra, self.bottone_reset],
             alignment=ft.MainAxisAlignment.CENTER,
             expand=True
         )
@@ -378,40 +391,30 @@ class BoxFiltro:
     def _applica_filtro(self, e):
         nome = self.filtro_nome.value
         taglia = self.filtro_taglia.value
-        
-        filtrati = []
-        for p in self.prodotti_originali:
-            if nome != "Tutti" and p.nome != nome:
-                continue
-            if taglia != "Tutte" and p.taglia != taglia:
-                continue
-            filtrati.append(p)
 
-        # Aggiorna la tabella con i prodotti filtrati
-        self.tabella_prodotti.prodotti = filtrati
-        self.tabella_prodotti.aggiorna()
+        filtrati = [
+            p for p in self.tabella_prodotti.prodotti
+            if (nome == "Tutti" or p.nome == nome) and
+               (taglia == "Tutte" or p.taglia == taglia)
+        ]
+        print("sono dentro _applica_filtro")
+        
+
+        self.tabella_prodotti.aggiorna(filtrati)
         self.tabella_prodotti.tabella.update()
 
     def _reset_filtro(self, e):
         self.filtro_nome.value = "Tutti"
         self.filtro_taglia.value = "Tutte"
-       
-
-        self.tabella_prodotti.prodotti = list(self.prodotti_originali)
-        self.tabella_prodotti.aggiorna()
-        self.tabella_prodotti.tabella.update()
 
         self.filtro_nome.update()
         self.filtro_taglia.update()
-        
 
-    def aggiorna_tabella(self,prodotto: Prodotto):
-        self.prodotti_originali.append(prodotto)
-
-    def elimina_prodotto(self, prodotto: Prodotto):
-        if prodotto in self.prodotti_originali:
-            self.prodotti_originali.remove(prodotto)
+        # Mostra tutti i prodotti presenti
+        self.tabella_prodotti.aggiorna()
+        self.tabella_prodotti.tabella.update()
 
     def get_widget(self):
         return self.container
+
 

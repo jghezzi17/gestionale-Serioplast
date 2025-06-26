@@ -29,7 +29,24 @@ def pagina_magazzino(page: ft.Page):
         'user': 'jacopoghezzi',
         'password': 'Atalanta123.'
     }
-     
+
+   def aggiungi_prodotto_con_id(prodotto: Prodotto):
+       print("sto aggiungendo un prodotto")
+       prodotto.id = magazzino_db.aggiungi_o_incrementa(prodotto)
+       print("il prodotto aggiunto è")
+       print(prodotto.nome)
+       print(prodotto.taglia)
+       print(f"il prodotto id è: {prodotto.id}")
+       # Verifica se prodotto già esiste nella tabella
+       for p in tabella.prodotti:
+           if p.nome == prodotto.nome and p.taglia == prodotto.taglia:
+               p.quantita += prodotto.quantita
+               tabella.aggiorna()
+               return
+
+       # Se è nuovo
+       tabella.prodotti.append(prodotto)
+       tabella.aggiorna()
    
    magazzino_db = MagazzinoDB(db_config)
    
@@ -39,21 +56,14 @@ def pagina_magazzino(page: ft.Page):
       prodotti,
       on_modifica = magazzino_db.aggiorna_prodotto,
       on_elimina_db = magazzino_db.elimina_prodotto,
-      
       )
    
    filtro = BoxFiltro(tabella)
-   tabella.on_elimina_filtro = filtro.elimina_prodotto
    
-   form = FormInserimentoProdotto(
-      tabella.aggiungi_prodotto, #da sistemare, da cambiare in aggiungi_o_incrementa
-      magazzino_db.aggiungi_o_incrementa,
-      filtro.aggiorna_tabella
-      )
+   form = FormInserimentoProdotto(aggiungi_prodotto_con_id)     
    
    magazzino_db.set_callbacks(
-    on_elimina_prodotto_gui=tabella.elimina_prodotto,
-    on_elimina_filtro=filtro.elimina_prodotto
+    on_elimina_prodotto_gui=tabella.elimina_prodotto
    )
 
    page.views.append(
@@ -76,15 +86,15 @@ def pagina_magazzino(page: ft.Page):
                         ),
                         ft.Row(
                             controls=[
-                                ft.ElevatedButton("Torna alla Home",on_click=lambda e: page.go("/")),
-                                ft.ElevatedButton("Aggiungi Prodotto", on_click=lambda e: form.mostra_form(page)),
-                                ft.ElevatedButton("Aggiungi Ordine Serioplast", on_click=lambda e: page.go("/ordSerio")),
-                                ft.ElevatedButton("Aggiungi Ordine Lumachina", on_click=lambda e: page.go("/ordLuma")),
+                                ft.ElevatedButton("Torna alla Home",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE,on_click=lambda e: page.go("/")),
+                                ft.ElevatedButton("Aggiungi Prodotto",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: form.mostra_form(page)),
+                                ft.ElevatedButton("Aggiungi Ordine Serioplast",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: page.go("/ordSerio")),
+                                ft.ElevatedButton("Aggiungi Ordine Lumachina",bgcolor=ft.Colors.BLUE_900,color=ft.Colors.WHITE, on_click=lambda e: page.go("/ordLuma")),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                             spacing=20,
                             ),
-                         ft.Row(
+                        ft.Row(
                             controls=[
                                 ft.ElevatedButton("Prodotti quasi finiti",on_click= apri_pagina_prodotti_quasi_zero),
                                 ft.ElevatedButton("Prodotti non in Magazzino", on_click= apri_pagina_prodotti_a_zero),
@@ -92,12 +102,11 @@ def pagina_magazzino(page: ft.Page):
                             alignment=ft.MainAxisAlignment.CENTER,
                             spacing=20,
                         ),
+                        filtro.get_widget(),
                         ft.Container(
                             content=tabella.get_widget(),
                             expand=True,     # 💡 tabella si espande
                         ),
-                        
-                        filtro.get_widget(),
                         ft.Row(
                             controls=[
                                 ft.ElevatedButton("Esci",bgcolor=ft.Colors.RED_400, color=ft.Colors.WHITE, on_click=on_close)
