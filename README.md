@@ -23,14 +23,18 @@ Gestionale per la gestione del magazzino Serioplast, sviluppato in Python con in
 ```bash
 git clone https://github.com/tuo-username/gestionaleSerioplast.git
 cd gestionaleSerioplast
-
-##crea e attiva il venv
+’’’
+### 2. Crea e attiva il venv
+```bash
 python -m venv venv
 source venv/bin/activate   # Linux/macOS
 venv\Scripts\activate      # Windows
+’’’
 
-##installa le dipendenze
+## 3. Installa le dipendenze
+```bash
 pip install -r requirements.txt
+’’’
 
 ## Configurazione Database PostgreSQL
 
@@ -56,6 +60,7 @@ Una volta installato e configurato PostgreSQL, crea i database necessari aprendo
 CREATE DATABASE ordiniserioplast;
 CREATE DATABASE ordinilumachina;
 CREATE DATABASE magazzino_db;
+’’’
 
 ## Configurazione Database per Accesso da Altri PC (Server/Host)
 
@@ -68,7 +73,7 @@ Se stai eseguendo il database PostgreSQL su un PC che funge da server/host, e vu
 ```python
 DB_HOST = 'localhost'   # connessione locale
 DB_PORT = 5432          # porta di default PostgreSQL
-
+’’’
 ## Configurazione per Connessione da Altri PC
 
 Per consentire l'accesso al database PostgreSQL da altri computer della rete locale:
@@ -79,12 +84,12 @@ Per consentire l'accesso al database PostgreSQL da altri computer della rete loc
 
   ```ini
   listen_addresses = '*'
-
+’’’
 - **Modifica `pg_hba.conf` aggiungendo** (sostituisci con la tua subnet):
 
 ```conf
 host    all    all    192.168.1.0/24    md5
-
+’’’
 ## Configurazione firewall e rete per accesso remoto al database
 
 ### Configura il firewall sul PC server:
@@ -97,14 +102,14 @@ host    all    all    192.168.1.0/24    md5
 
   ```bash
   sudo ufw allow 5432/tcp
-
+’’’
 ## Imposta IP fisso al PC server (consigliato)
 
 - Trova l’IP con `ipconfig` (Windows) o `ifconfig` / `ip a` (Linux/macOS).
 
 - Configura IP statico tramite impostazioni di rete o prenotazione DHCP nel router.
 
----
+
 
 ## Configura i client
 
@@ -113,4 +118,4 @@ Nel file di configurazione client (`db_config.py`), imposta:
 ```python
 DB_HOST = '<IP-del-server>'  # es. '192.168.1.100'
 DB_PORT = 5432
-
+’’’
