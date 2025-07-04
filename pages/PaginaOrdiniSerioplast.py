@@ -23,19 +23,19 @@ def pagina_ordiniSerioplast(page: ft.Page):
 
      # Configurazione per la connessione PostgreSQL
      db_config_serioplast = {
-         'host': 'localhost',
+         'host': '192.168.2.104',
          'port': 5432,
          'dbname': 'ordiniserioplast',
-         'user': 'jacopoghezzi',
-         'password': 'Atalanta123.'
+         'user': 'postgres',
+         'password': 'serioplast'
      }
 
      db_config_magazzino = {
-         'host': 'localhost',
+         'host': '192.168.2.104',
          'port': 5432,
          'dbname': 'magazzino_db',
-         'user': 'jacopoghezzi',
-         'password': 'Atalanta123.'
+         'user': 'postgres',
+         'password': 'serioplast'
      }
 
      magazzino_db = MagazzinoDB(db_config_magazzino)# recupera magazzino DB

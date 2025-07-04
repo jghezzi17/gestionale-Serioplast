@@ -23,11 +23,11 @@ def pagina_magazzino(page: ft.Page):
             pagina_prodotti_quasi_zero(page,magazzino_db,15)
 
    db_config = {
-        'host': 'localhost',
+        'host': '192.168.2.104',
         'port': 5432,
         'dbname': 'magazzino_db',
-        'user': 'jacopoghezzi',
-        'password': 'Atalanta123.'
+        'user': 'postgres',
+        'password': 'serioplast'
     }
 
    def aggiungi_prodotto_con_id(prodotto: Prodotto):
