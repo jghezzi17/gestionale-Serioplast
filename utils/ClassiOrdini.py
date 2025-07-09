@@ -146,11 +146,14 @@ class TabellaOrdini:
             disabled=is_applicato,
             on_click=lambda e: self.on_visualizza_dettagli(ordine) if self.on_visualizza_dettagli else None,
         )
+        tooltip = "Ordine già applicato – non eliminabile" if ordine.applicato else "Elimina ordine"
+
 
         btn_elimina = ft.IconButton(
             icon=ft.Icons.DELETE,
             icon_color="red",
-            tooltip="Elimina ordine",
+            tooltip=tooltip,
+            disabled=ordine.applicato,
             on_click=lambda e: self._elimina_ordine(ordine)
         )
 
