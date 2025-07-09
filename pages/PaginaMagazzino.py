@@ -26,8 +26,8 @@ def pagina_magazzino(page: ft.Page):
         'host': 'localhost',
         'port': 5432,
         'dbname': 'magazzino_db',
-        'user': 'jacopoghezzi',
-        'password': 'Atalanta123.'
+        'user': 'postgres',
+        'password': 'serioplast'
     }
 
    def aggiungi_prodotto_con_id(prodotto: Prodotto):

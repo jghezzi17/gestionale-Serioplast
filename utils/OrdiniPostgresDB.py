@@ -12,6 +12,35 @@ class OrdiniDB:
         return psycopg2.connect(**self.db_config)
 
     def _create_tables(self):
+    	with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute('''
+                CREATE TABLE IF NOT EXISTS ordini (
+                    id SERIAL PRIMARY KEY,
+                    codice_ordine TEXT UNIQUE,
+                    timestamp TEXT,
+                    applicato INTEGER DEFAULT 0
+                )
+            ''')
+                cursor.execute('''
+                CREATE TABLE IF NOT EXISTS note_ordini (
+                    ordine_id INTEGER PRIMARY KEY REFERENCES ordini(id) ON DELETE CASCADE,
+                    note TEXT
+                )
+            ''')
+                cursor.execute('''
+                CREATE TABLE IF NOT EXISTS prodotti_ordine (
+                    id SERIAL PRIMARY KEY,
+                    ordine_id INTEGER REFERENCES ordini(id) ON DELETE CASCADE,
+                    nome TEXT,
+                    quantita INTEGER,
+                    taglia TEXT
+                )
+            ''')
+            conn.commit()  
+
+    """
+    def _create_tables(self):
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute('''
@@ -37,7 +66,8 @@ class OrdiniDB:
                         taglia TEXT
                     )
                 ''')
-            conn.commit()
+            conn.commit"""
+
     def get_note_ordine(self, ordine_id: int) -> str:
         with self._connect() as conn:
             with conn.cursor() as cursor:

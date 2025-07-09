@@ -23,15 +23,15 @@ def pagina_ordiniLumachina(page: ft.Page):
          'host': 'localhost',
          'port': 5432,
          'dbname': 'ordinilumachina',
-         'user': 'jacopoghezzi',
-         'password': 'Atalanta123.'
+         'user': 'postgres',
+         'password': 'serioplast'
      }
      db_config_magazzino = {
          'host': 'localhost',
          'port': 5432,
          'dbname': 'magazzino_db',
-         'user': 'jacopoghezzi',
-         'password': 'Atalanta123.'
+         'user': 'postgres',
+         'password': 'serioplast'
      }
 
      magazzino_db = MagazzinoDB(db_config_magazzino)
